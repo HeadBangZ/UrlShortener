@@ -46,9 +46,12 @@ public class ShortenedUrlService : IShortenedUrlService
 		return codes;
 	}
 
-	public string RetrieveShortURL(string code)
+	public async Task<ShortenedUrl?> RetrieveShortURL(string code)
 	{
-		throw new NotImplementedException();
+		var shortenedUrl = await _context.ShortenedUrls
+																			.Where(x => x.Code == code)
+																			.FirstOrDefaultAsync();
+		return shortenedUrl;
 	}
 
 	private string? GenerateCode()
