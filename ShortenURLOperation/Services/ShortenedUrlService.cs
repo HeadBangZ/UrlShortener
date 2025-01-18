@@ -1,48 +1,47 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShortenURLOperation.Entities;
 using ShortenURLOperation.Infrastructure;
+using ShortenURLOperation.Requests;
 
 namespace ShortenURLOperation.Services;
 
 public class ShortenedUrlService : IShortenedUrlService
 {
+	public const int CodeLength = 7;
+
 	private AppDbContext _context;
-	private int codeLength = 7;
+	private const string Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+
+	private readonly Random _random = new Random();
+
 
 	public ShortenedUrlService(AppDbContext context)
 	{
 		_context = context;
 	}
 
-	public string GenerateShortURL(string url)
+	public async Task<string> GenerateShortURL(ShortenedUrlRequest request, HttpContext httpContext)
 	{
-		while (true)
+		var code = await GenerateCode();
+
+		var entity = new ShortenedUrl
 		{
-			var code = GenerateCode();
+			Id = Guid.NewGuid(),
+			LongUrl = request.Url,
+			ShortUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/api/{code}",
+			Code = code,
+			CreatedOnUtc = DateTime.UtcNow,
+		};
 
-			var result = _context.ShortenedUrls.SingleOrDefault(x => x.Code == code);
+		_context.ShortenedUrls.Add(entity);
+		_context.SaveChanges();
 
-			if (result != null) continue;
-
-			var entity = new ShortenedUrl
-			{
-				Id = Guid.NewGuid(),
-				LongUrl = EnsureHttpsUrl(url),
-				ShortUrl = $"localhost/{code}",
-				Code = code,
-				CreatedOnUtc = DateTime.UtcNow,
-			};
-
-			_context.ShortenedUrls.Add(entity);
-			_context.SaveChanges();
-
-			return entity.ShortUrl;
-		}
+		return entity.ShortUrl;
 	}
 
-	public async Task<IEnumerable<string>> GetAllShortURLCodes()
+	public async Task<IEnumerable<string>> GetAllShortURLs()
 	{
-		var codes = await _context.ShortenedUrls.Select(x => x.Code).ToListAsync();
+		var codes = await _context.ShortenedUrls.Select(x => x.ShortUrl).ToListAsync();
 		return codes;
 	}
 
@@ -54,32 +53,24 @@ public class ShortenedUrlService : IShortenedUrlService
 		return shortenedUrl;
 	}
 
-	private string? GenerateCode()
+	private async Task<string> GenerateCode()
 	{
-		string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-		var chars = new char[codeLength];
+		var codeChars = new char[CodeLength];
 
-		for (int i = 0; i < codeLength; i++)
+		while (true)
 		{
-			chars[i] = characters[new Random().Next(characters.Length)];
+			for (int i = 0; i < CodeLength; i++)
+			{
+				var idx = _random.Next(Characters.Length - 1);
+				codeChars[i] = Characters[idx];
+			}
+
+			var code = new string(codeChars);
+
+			if (!await _context.ShortenedUrls.AnyAsync(x => x.Code == code))
+			{
+				return code;
+			}
 		}
-
-		return new string(chars);
-	}
-
-	private string EnsureHttpsUrl(string url)
-	{
-		if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-		{
-			url = $"https://{url}";
-		}
-
-		Uri uri;
-		if (Uri.TryCreate(url, UriKind.Absolute, out uri))
-		{
-			return uri.AbsoluteUri;
-		}
-
-		return url;
 	}
 }

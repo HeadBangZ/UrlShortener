@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShortenURLOperation.Entities;
+using ShortenURLOperation.Services;
 
 namespace ShortenURLOperation.Infrastructure;
 
@@ -13,12 +14,10 @@ public class AppDbContext : DbContext
 	{
 		base.OnModelCreating(modelBuilder);
 
-		modelBuilder.Entity<ShortenedUrl>()
-			.HasIndex(x => new { x.Code })
-			.IsUnique();
-
-		modelBuilder.Entity<ShortenedUrl>()
-			.Property(x => x.Code)
-			.HasMaxLength(7);
+		modelBuilder.Entity<ShortenedUrl>(builder =>
+		{
+			builder.HasIndex(x => new { x.Code }).IsUnique();
+			builder.Property(x => x.Code).HasMaxLength(ShortenedUrlService.CodeLength);
+		});
 	}
 }

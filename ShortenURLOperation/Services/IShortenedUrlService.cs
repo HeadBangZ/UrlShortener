@@ -1,10 +1,11 @@
 ﻿using ShortenURLOperation.Entities;
+using ShortenURLOperation.Requests;
 
 namespace ShortenURLOperation.Services;
 
 public interface IShortenedUrlService
 {
-	public string GenerateShortURL(string url);
+	public Task<string> GenerateShortURL(ShortenedUrlRequest request, HttpContext httpContext);
 	public Task<ShortenedUrl?> RetrieveShortURL(string code);
-	public Task<IEnumerable<string>> GetAllShortURLCodes();
+	public Task<IEnumerable<string>> GetAllShortURLs();
 }
