@@ -5,7 +5,7 @@ using ShortenURLOperation.Services;
 
 namespace ShortenURLOperation.Controllers;
 
-[Route("api/[controller]")]
+[Route("api")]
 [ApiController]
 public class ShortenedUrlController : ControllerBase
 {
@@ -24,12 +24,26 @@ public class ShortenedUrlController : ControllerBase
 	}
 
 	[HttpGet]
+	[Route("{code}")]
+	public async Task<ActionResult> RedirectToWebsite(string code)
+	{
+		var shortenedUrl = await _service.RetrieveShortURL(code);
+
+		if (shortenedUrl == null)
+		{
+			return NotFound();
+		}
+
+		return Redirect(shortenedUrl.LongUrl);
+	}
+
+	[HttpGet]
 	public async Task<ActionResult<string[]>> GetAllShortUrls()
 	{
 		return (await _service.GetAllShortURLs()).ToArray();
 	}
 
-	[HttpGet("{code}")]
+	[HttpGet("details/{code}")]
 	public async Task<ActionResult<ShortenedUrl>> GetShortenedUrlObject(string code)
 	{
 		var shortenedUrl = await _service.RetrieveShortURL(code);
