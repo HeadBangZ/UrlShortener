@@ -61,7 +61,7 @@ public class ShortenedUrlService : IShortenedUrlService
 		{
 			for (int i = 0; i < CodeLength; i++)
 			{
-				var idx = _random.Next(Characters.Length - 1);
+				var idx = _random.Next(Characters.Length);
 				codeChars[i] = Characters[idx];
 			}
 
