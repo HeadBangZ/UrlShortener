@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShortenURLOperation.Entities;
+using ShortenURLOperation.Requests;
 using ShortenURLOperation.Services;
 
 namespace ShortenURLOperation.Controllers;
@@ -9,16 +10,23 @@ namespace ShortenURLOperation.Controllers;
 public class ShortenedUrlController : ControllerBase
 {
 	private IShortenedUrlService _service;
+	private HttpContext _httpContext;
 
-	public ShortenedUrlController(IShortenedUrlService service)
+	public ShortenedUrlController(IShortenedUrlService service, IHttpContextAccessor httpContextAccessor)
 	{
 		_service = service;
+
+		if (httpContextAccessor.HttpContext == null)
+		{
+			throw new ArgumentNullException(nameof(httpContextAccessor));
+		}
+		_httpContext = httpContextAccessor.HttpContext;
 	}
 
 	[HttpGet]
-	public async Task<ActionResult<string[]>> GetAllShortUrlCodes()
+	public async Task<ActionResult<string[]>> GetAllShortUrls()
 	{
-		return (await _service.GetAllShortURLCodes()).ToArray();
+		return (await _service.GetAllShortURLs()).ToArray();
 	}
 
 	[HttpGet("{code}")]
@@ -32,5 +40,18 @@ public class ShortenedUrlController : ControllerBase
 		}
 
 		return Ok(shortenedUrl);
+	}
+
+	[HttpPost]
+	public async Task<ActionResult> GenerateShortUrl(ShortenedUrlRequest request)
+	{
+		if (!Uri.TryCreate(request.Url, UriKind.Absolute, out _))
+		{
+			return BadRequest("The specified URL is invalid");
+		}
+
+		var shortUrl = await _service.GenerateShortURL(request, _httpContext);
+
+		return Ok(shortUrl);
 	}
 }

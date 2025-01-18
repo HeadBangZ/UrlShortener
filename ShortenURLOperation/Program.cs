@@ -23,6 +23,7 @@ namespace ShortenURLOperation
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
+			builder.Services.AddHttpContextAccessor();
 			builder.Services.AddScoped<IShortenedUrlService, ShortenedUrlService>();
 
 			var app = builder.Build();
