@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ShortenURLOperation.Entities;
 using ShortenURLOperation.Services;
 
 namespace ShortenURLOperation.Controllers;
@@ -15,8 +16,21 @@ public class ShortenedUrlController : ControllerBase
 	}
 
 	[HttpGet]
-	public async Task<string[]> GetAllShortUrlCodes()
+	public async Task<ActionResult<string[]>> GetAllShortUrlCodes()
 	{
 		return (await _service.GetAllShortURLCodes()).ToArray();
+	}
+
+	[HttpGet("{code}")]
+	public async Task<ActionResult<ShortenedUrl>> GetShortenedUrlObject(string code)
+	{
+		var shortenedUrl = await _service.RetrieveShortURL(code);
+
+		if (shortenedUrl == null)
+		{
+			return NotFound();
+		}
+
+		return Ok(shortenedUrl);
 	}
 }
