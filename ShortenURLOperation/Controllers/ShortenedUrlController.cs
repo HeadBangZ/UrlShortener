@@ -27,7 +27,7 @@ public class ShortenedUrlController : ControllerBase
 	[Route("{code}")]
 	public async Task<ActionResult> RedirectToWebsite(string code)
 	{
-		var shortenedUrl = await _service.RetrieveShortURL(code);
+		var shortenedUrl = await _service.RetrieveShortenedURL(code);
 
 		if (shortenedUrl == null)
 		{
@@ -38,15 +38,15 @@ public class ShortenedUrlController : ControllerBase
 	}
 
 	[HttpGet]
-	public async Task<ActionResult<string[]>> GetAllShortUrls()
+	public async Task<ActionResult<string[]>> GetAllShortUrlCodes()
 	{
-		return (await _service.GetAllShortURLs()).ToArray();
+		return (await _service.GetAllShortURLCodess()).ToArray();
 	}
 
 	[HttpGet("details/{code}")]
 	public async Task<ActionResult<ShortenedUrl>> GetShortenedUrlObject(string code)
 	{
-		var shortenedUrl = await _service.RetrieveShortURL(code);
+		var shortenedUrl = await _service.RetrieveShortenedURL(code);
 
 		if (shortenedUrl == null)
 		{
