@@ -39,13 +39,13 @@ public class ShortenedUrlService : IShortenedUrlService
 		return entity.ShortUrl;
 	}
 
-	public async Task<IEnumerable<string>> GetAllShortURLs()
+	public async Task<IEnumerable<string>> GetAllShortURLCodess()
 	{
-		var codes = await _context.ShortenedUrls.Select(x => x.ShortUrl).ToListAsync();
+		var codes = await _context.ShortenedUrls.Select(x => x.Code).ToListAsync();
 		return codes;
 	}
 
-	public async Task<ShortenedUrl?> RetrieveShortURL(string code)
+	public async Task<ShortenedUrl?> RetrieveShortenedURL(string code)
 	{
 		var shortenedUrl = await _context.ShortenedUrls
 																			.Where(x => x.Code == code)
